@@ -1,8 +1,7 @@
-/// <reference path="../deploy.d.ts" />
+import { defineApi } from '../utils/defineApi.ts'
 
-export default (event: FetchEvent) => {
-  const response = new Response("Hello Bolt!", {
-    headers: { "content-type": "text/plain" },
-  });
-  event.respondWith(response);
-};
+export default defineApi(() => {
+    return new Response("Hello Bolt!", {
+      headers: { "content-type": "text/plain" },
+    });
+})

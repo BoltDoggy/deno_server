@@ -1,5 +1,3 @@
-/// <reference path="./deploy.d.ts" />
-
 import { React, render, Api, Middleware } from "./utils/JsxRouter.tsx";
 import { standardLog } from './middlewares/standardLog.ts'
 
