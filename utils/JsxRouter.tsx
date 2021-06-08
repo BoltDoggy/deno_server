@@ -66,9 +66,10 @@ export const render =
       throw error;
     }
   ) =>
-  async ({ request, respondWith }: FetchEvent) => {
+  async (event: FetchEvent) => {
+    const { request } = event;
     try {
-      respondWith(
+      event.respondWith(
         await (
           await callback((f, props, ...children) =>
             f({
@@ -79,6 +80,6 @@ export const render =
         )(request, () => next(request))
       );
     } catch (error) {
-      respondWith(next(request, error));
+      event.respondWith(next(request, error));
     }
   };
