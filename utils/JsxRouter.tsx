@@ -53,7 +53,7 @@ export const Api = (props: ApiProps) => {
 };
 
 export const render =
-  (callback: (h: any) => any, next: Function) =>
+  (callback: (h: any) => any, next: Function = (_: any, error: any) => { throw error }) =>
   async (event: FetchEvent) => {
     try {
       event.respondWith(
@@ -64,7 +64,7 @@ export const render =
               children,
             })
           )
-        )(event, next)
+        )(event, () => next(event))
       );
     } catch (error) {
       event.respondWith(next(event, error));

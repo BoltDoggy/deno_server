@@ -12,22 +12,10 @@ addEventListener(
       <Middleware use={standardLog}>
         <Api path="/" use={Home}></Api>
         <Api path="/api/wx/config" use={WxConfig}></Api>
-        <Middleware use={NotFound}></Middleware>
+        <Middleware use={(_, next) => {
+          return next();
+        }}></Middleware>
       </Middleware>
-    ),
-    (event: FetchEvent, error: Error) => {
-      if (error) {
-        return new Response(JSON.stringify({
-          error: error.toString(),
-          stack: error.stack
-        }), {
-          status: 500
-        })
-      } else {
-        return new Response('NotFound!', {
-          status: 404
-        })
-      }
-    }
+    )
   )
 );
