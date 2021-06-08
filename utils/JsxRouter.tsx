@@ -4,11 +4,12 @@ import { compose } from "./compose.ts";
 
 export function React() {}
 
-type Middleware = (event: FetchEvent, next: Function) => void;
+export type NextMiddleware = () => Response | Promise<Response>;
+type UsedMiddleware = (event: FetchEvent, next: NextMiddleware) => Response | Promise<Response>;
 
 interface MiddlewareProps {
-  use?: Middleware | Middleware[];
-  children?: Function | Function[];
+  use?: UsedMiddleware | UsedMiddleware[];
+  children?: UsedMiddleware | UsedMiddleware[];
 }
 
 interface ApiProps extends MiddlewareProps {
@@ -16,7 +17,7 @@ interface ApiProps extends MiddlewareProps {
 }
 
 export const Middleware = ({ use, children }: MiddlewareProps) => {
-  return (event: FetchEvent, next: Function) => {
+  return (event: FetchEvent, next: NextMiddleware) => {
     const _next = () => {
       if (!children) {
         return next();
@@ -41,7 +42,7 @@ export const Middleware = ({ use, children }: MiddlewareProps) => {
 
 export const Api = (props: ApiProps) => {
   const { path } = props;
-  return (event: FetchEvent, next: Function) => {
+  return (event: FetchEvent, next: NextMiddleware) => {
     const { request } = event;
     const url = new URL(request.url);
     if (url.pathname === path) {
@@ -53,12 +54,22 @@ export const Api = (props: ApiProps) => {
 };
 
 export const render =
-  (callback: (h: any) => any, next: Function = (_: any, error: any) => { throw error }) =>
+  (
+    callback: (
+      h: (f: Function, props: any, ...children: any) => UsedMiddleware
+    ) => (
+      event: FetchEvent,
+      next: NextMiddleware
+    ) => Response | Promise<Response>,
+    next = (event: FetchEvent, error?: any) => {
+      throw error;
+    }
+  ) =>
   async (event: FetchEvent) => {
     try {
       event.respondWith(
         await (
-          await callback((f: any, props: any, ...children: any) =>
+          await callback((f: Function, props: any, ...children: any) =>
             f({
               ...props,
               children,
@@ -69,6 +80,4 @@ export const render =
     } catch (error) {
       event.respondWith(next(event, error));
     }
-  }
-
-
+  };

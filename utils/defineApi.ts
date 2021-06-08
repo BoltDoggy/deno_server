@@ -1,9 +1,11 @@
 /// <reference path="../deploy.d.ts" />
 
+import type { NextMiddleware } from "./JsxRouter.tsx";
+
 export const defineApi = (
   callback: (event: Request) => Response | Promise<Response>,
-) => (event: FetchEvent) => Promise.resolve(callback(event.request));
+) => (event: FetchEvent) => callback(event.request);
 
 export const defineMiddleware = (
-  callback: (event: Request, next: Function) => Response | Promise<Response>,
-) => (event: FetchEvent, next: Function) => callback(event.request, next);
+  callback: (event: Request, next: NextMiddleware) => Response | Promise<Response>,
+) => (event: FetchEvent, next: NextMiddleware) => callback(event.request, next);

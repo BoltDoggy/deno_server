@@ -12,9 +12,7 @@ addEventListener(
       <Middleware use={standardLog}>
         <Api path="/" use={Home}></Api>
         <Api path="/api/wx/config" use={WxConfig}></Api>
-        <Middleware use={(_, next) => {
-          return next();
-        }}></Middleware>
+        <Middleware use={NotFound}></Middleware>
       </Middleware>
     )
   )
