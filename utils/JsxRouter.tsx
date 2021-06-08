@@ -5,7 +5,10 @@ import { compose } from "./compose.ts";
 export function React() {}
 
 export type NextMiddleware = () => Response | Promise<Response>;
-type UsedMiddleware = (event: FetchEvent, next: NextMiddleware) => Response | Promise<Response>;
+type UsedMiddleware = (
+  event: Request,
+  next: NextMiddleware
+) => Response | Promise<Response>;
 
 interface MiddlewareProps {
   use?: UsedMiddleware | UsedMiddleware[];
@@ -17,7 +20,7 @@ interface ApiProps extends MiddlewareProps {
 }
 
 export const Middleware = ({ use, children }: MiddlewareProps) => {
-  return (event: FetchEvent, next: NextMiddleware) => {
+  return (event: Request, next: NextMiddleware) => {
     const _next = () => {
       if (!children) {
         return next();
@@ -42,11 +45,10 @@ export const Middleware = ({ use, children }: MiddlewareProps) => {
 
 export const Api = (props: ApiProps) => {
   const { path } = props;
-  return (event: FetchEvent, next: NextMiddleware) => {
-    const { request } = event;
+  return (request: Request, next: NextMiddleware) => {
     const url = new URL(request.url);
     if (url.pathname === path) {
-      return Middleware(props)(event, next);
+      return Middleware(props)(request, next);
     } else {
       return next();
     }
@@ -57,27 +59,26 @@ export const render =
   (
     callback: (
       h: (f: Function, props: any, ...children: any) => UsedMiddleware
-    ) => (
-      event: FetchEvent,
-      next: NextMiddleware
-    ) => Response | Promise<Response>,
-    next = (event: FetchEvent, error?: any) => {
+    ) => Promise<
+      (event: Request, next: NextMiddleware) => Response | Promise<Response>
+    >,
+    next = (event: Request, error?: any) => {
       throw error;
     }
   ) =>
-  async (event: FetchEvent) => {
+  async ({ request, respondWith }: FetchEvent) => {
     try {
-      event.respondWith(
+      respondWith(
         await (
-          await callback((f: Function, props: any, ...children: any) =>
+          await callback((f, props, ...children) =>
             f({
               ...props,
               children,
             })
           )
-        )(event, () => next(event))
+        )(request, () => next(request))
       );
     } catch (error) {
-      event.respondWith(next(event, error));
+      respondWith(next(request, error));
     }
   };
