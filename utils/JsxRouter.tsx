@@ -53,13 +53,22 @@ export const Api = (props: ApiProps) => {
 };
 
 export const render =
-  (callback: (h: any) => any) =>
-  async (event: FetchEvent, next: Function = () => {}) =>
-    (
-      await callback((f: any, props: any, ...children: any) =>
-        f({
-          ...props,
-          children,
-        })
-      )
-    )(event, next);
+  (callback: (h: any) => any, next: Function) =>
+  async (event: FetchEvent) => {
+    try {
+      event.respondWith(
+        await (
+          await callback((f: any, props: any, ...children: any) =>
+            f({
+              ...props,
+              children,
+            })
+          )
+        )(event, next)
+      );
+    } catch (error) {
+      event.respondWith(next(event, error));
+    }
+  }
+
+
